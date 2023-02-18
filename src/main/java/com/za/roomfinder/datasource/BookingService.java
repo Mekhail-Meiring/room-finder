@@ -4,21 +4,16 @@ import com.google.common.annotations.VisibleForTesting;
 import com.za.roomfinder.dto.BookedRoom;
 import com.za.roomfinder.dto.BookingRequest;
 import com.za.roomfinder.exceptions.RoomNotAvailableException;
-
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadPoolExecutor;
+import java.util.*;
+import java.util.concurrent.*;
 
 
 public class BookingService {
 
-    private final List<BookedRoom> bookedRooms = Collections.synchronizedList(new ArrayList<>());
-
+    private final ConcurrentMap<Integer, BookedRoom> bookedRooms = new ConcurrentHashMap<>();
+    private int bookingId = 1;
     private ExecutorService executorService = Executors.newFixedThreadPool(1);
 
 
