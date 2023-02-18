@@ -83,6 +83,55 @@ public class BookingService {
     }
 
 
+    public double cancelBooking(int bookingId) throws ExecutionException, InterruptedException {
+
+        Future<Double> refundAmountFuture = executorService.submit(() -> {
+            checkIfBookingExists(bookingId);
+            BookedRoom bookedRoom = bookedRooms.remove(bookingId);
+            return getRefundAmount(bookedRoom);
+        });
+
+        return refundAmountFuture.get();
+    }
+
+    private void checkIfBookingExists(int bookingId) throws RoomNotAvailableException{
+        if (!bookedRooms.containsKey(bookingId)) {
+            throw new RoomNotAvailableException("Booking does not exist");
+        }
+    }
+
+    private double getRefundAmount(BookedRoom bookedRoom) {
+        long numDays = getNumDaysUntilBookedDate(bookedRoom);
+        double refundPercentage = getRefundPercentage(numDays);
+        return Math.round( (refundPercentage * bookedRoom.price()) * 100.0) / 100.0;
+    }
+
+
+    public long getNumDaysUntilBookedDate(BookedRoom bookedRoom){
+        LocalDate startDate = LocalDate.parse(bookedRoom.startDate());
+        LocalDate currentDate = LocalDate.now();
+
+        return ChronoUnit.DAYS.between(currentDate, startDate);
+    }
+
+
+    public double getRefundPercentage(long numDays){
+
+        double refundPercentage = 0.0;
+        if (numDays >= 14) {
+            refundPercentage = 1.0;
+        } else if (numDays >= 7) {
+            refundPercentage = 0.5;
+        } else if (numDays >= 3) {
+            refundPercentage = 0.25;
+        }
+
+        return refundPercentage;
+    }
+
+
+
+
     public void setExecutorServiceSize(int size) {
         this.executorService = Executors.newFixedThreadPool(size);
     }
