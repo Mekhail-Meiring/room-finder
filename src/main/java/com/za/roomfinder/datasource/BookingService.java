@@ -20,25 +20,37 @@ public class BookingService {
     public void bookRoom(BookingRequest bookingRequest) {
         executorService.submit(() -> {
 
-            if (overlaps(bookingRequest)) {
-                throw new RoomNotAvailableException("Room is already booked");
-            }
+            checkDates(bookingRequest);
+
             double price = calculatePrice(bookingRequest);
-            bookedRooms.add(new BookedRoom(bookingRequest.clientId(), bookingRequest.startDate(), bookingRequest.endDate(), price));
+            bookedRooms.put(bookingId, new BookedRoom(bookingRequest.clientId(), bookingId, bookingRequest.startDate(), bookingRequest.endDate(), price));
+            bookingId++;
         });
+
     }
 
     @VisibleForTesting
     public void bookRoom(BookingRequest bookingRequest, Runnable callback) {
         executorService.submit(() -> {
-            if (overlaps(bookingRequest)) {
-                throw new RoomNotAvailableException("Room is already booked");
-            }
+
+            checkDates(bookingRequest);
 
             double price = calculatePrice(bookingRequest);
-            bookedRooms.add(new BookedRoom(bookingRequest.clientId(), bookingRequest.startDate(), bookingRequest.endDate(), price));
+            bookedRooms.put(bookingId, new BookedRoom(bookingRequest.clientId(), bookingId, bookingRequest.startDate(), bookingRequest.endDate(), price));
+            bookingId++;
             callback.run();
         });
+    }
+
+    private void checkDates (BookingRequest bookingRequest) throws RoomNotAvailableException{
+
+        if (LocalDate.parse(bookingRequest.startDate()).isBefore(LocalDate.now())) {
+            throw new RoomNotAvailableException("Start date cannot be in the past");
+        }
+
+        if (overlaps(bookingRequest)) {
+            throw new RoomNotAvailableException("Room is already booked");
+        }
     }
 
 
