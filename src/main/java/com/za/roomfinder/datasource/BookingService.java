@@ -56,7 +56,7 @@ public class BookingService {
 
     public boolean overlaps(BookingRequest bookingRequest) {
 
-        for (BookedRoom bookedRoom: bookedRooms) {
+        for (BookedRoom bookedRoom: bookedRooms.values()) {
 
             LocalDate startDate = LocalDate.parse(bookingRequest.startDate());
             LocalDate endDate = LocalDate.parse(bookingRequest.endDate());
@@ -88,7 +88,7 @@ public class BookingService {
     }
 
     public List<BookedRoom> getBookedRooms() {
-        return bookedRooms;
+        return new ArrayList<>(bookedRooms.values());
     }
 
     @VisibleForTesting
