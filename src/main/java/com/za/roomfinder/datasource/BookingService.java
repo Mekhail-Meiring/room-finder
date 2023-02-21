@@ -3,7 +3,13 @@ package com.za.roomfinder.datasource;
 import com.google.common.annotations.VisibleForTesting;
 import com.za.roomfinder.dto.BookedRoom;
 import com.za.roomfinder.dto.BookingRequest;
+import com.za.roomfinder.dto.Client;
+import com.za.roomfinder.exceptions.ClientNotFoundException;
+import com.za.roomfinder.exceptions.ClientRegistrationException;
+import com.za.roomfinder.exceptions.InvalidBookingException;
 import com.za.roomfinder.exceptions.RoomNotAvailableException;
+import org.springframework.stereotype.Repository;
+
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
