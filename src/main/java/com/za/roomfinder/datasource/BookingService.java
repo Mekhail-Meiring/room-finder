@@ -200,6 +200,16 @@ public class BookingService {
     }
 
 
+    public void rescheduleBooking(int bookingId, BookingRequest newBookingRequest) {
+
+        Future<BookedRoom> bookedRoomFuture = executorService.submit(
+                () -> {
+
+                    if (clientNotOwner(newBookingRequest.clientId(), bookingId)) {
+                        throw new InvalidBookingException("Client does not own this booking");
+                    }
+
+                    BookedRoom bookedRoom = bookedRooms.remove(bookingId);
 
 
     public void setExecutorServiceSize(int size) {
