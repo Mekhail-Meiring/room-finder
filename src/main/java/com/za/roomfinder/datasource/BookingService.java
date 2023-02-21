@@ -107,17 +107,14 @@ public class BookingService {
     }
 
 
-    public boolean overlaps(BookingRequest bookingRequest) {
+    public boolean checkIfBookingRequestDateIsTaken(BookingRequest bookingRequest) {
 
         for (BookedRoom bookedRoom: bookedRooms.values()) {
 
-            LocalDate startDate = LocalDate.parse(bookingRequest.startDate());
-            LocalDate endDate = LocalDate.parse(bookingRequest.endDate());
+            LocalDate requestDate = LocalDate.parse(bookingRequest.date());
+            LocalDate bookedDate = LocalDate.parse(bookedRoom.date());
 
-            LocalDate bookedStartDate = LocalDate.parse(bookedRoom.startDate());
-            LocalDate bookedEndDate = LocalDate.parse(bookedRoom.endDate());
-
-            if (!startDate.isAfter(bookedEndDate) && !bookedStartDate.isAfter(endDate)) {
+            if (requestDate.isEqual(bookedDate)) {
                 return true;
             }
         }
