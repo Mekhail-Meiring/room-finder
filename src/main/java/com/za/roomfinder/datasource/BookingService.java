@@ -149,8 +149,14 @@ public class BookingService {
         return refundAmountFuture.get();
     }
 
-    private void checkIfBookingExists(int bookingId) throws RoomNotAvailableException{
-        if (!bookedRooms.containsKey(bookingId)) {
+    public boolean clientNotOwner(int clientId, int bookingId){
+        BookedRoom bookedRoom = bookedRooms.get(bookingId);
+        return bookedRoom.fromClientId() != clientId;
+    }
+
+
+    private void checkIfBookingExists(BookedRoom bookedRoom) throws RoomNotAvailableException{
+        if (bookedRoom == null) {
             throw new RoomNotAvailableException("Booking does not exist");
         }
     }
