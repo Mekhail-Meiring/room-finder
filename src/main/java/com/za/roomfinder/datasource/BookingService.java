@@ -122,14 +122,14 @@ public class BookingService {
     }
 
 
-    private double calculatePrice(BookingRequest bookingRequest) {
+    public double calculatePrice(BookingRequest bookingRequest) {
 
-        LocalDate startDate = LocalDate.parse(bookingRequest.startDate());
-        LocalDate endDate = LocalDate.parse(bookingRequest.endDate());
+        LocalDate requestBookingDate = LocalDate.parse(bookingRequest.date());
+        LocalDate startOfYearDate = LocalDate.MIN.withYear(requestBookingDate.getYear());
 
-        long numDays = ChronoUnit.DAYS.between(startDate, endDate);
-        double pricePerDay = (numDays + 100) / 12.0;
-        return pricePerDay * numDays;
+        long numDays = ChronoUnit.DAYS.between(startOfYearDate, requestBookingDate.plusDays(1));
+
+        return Math.round ( ( (numDays + 100) / 12.0 ) * 100.0 ) / 100.0;
     }
 
 
