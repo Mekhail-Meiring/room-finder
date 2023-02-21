@@ -21,7 +21,7 @@ public class BookingService {
     private final ConcurrentMap<Integer, BookedRoom> bookedRooms = new ConcurrentHashMap<>();
     private int bookingId = 1;
     private int nrOfThreads = 1;
-    private ExecutorService executorService = Executors.newFixedThreadPool(nrOfThreads);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(nrOfThreads);
     private final List<Client> clients = new ArrayList<>();
 
 
@@ -247,6 +247,7 @@ public class BookingService {
 
         return Math.round( (rescheduleFeePercentage * bookedRoom.price()) * 100.0) / 100.0;
     }
+
 
     public List<BookedRoom> getBookedRooms() {
         return new ArrayList<>(bookedRooms.values());
