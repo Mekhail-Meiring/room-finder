@@ -211,9 +211,41 @@ public class BookingService {
 
                     BookedRoom bookedRoom = bookedRooms.remove(bookingId);
 
+                    checkIfBookingExists(bookedRoom);
+                    checkRequestDate(newBookingRequest);
 
-    public void setExecutorServiceSize(int size) {
-        this.executorService = Executors.newFixedThreadPool(size);
+                    double rescheduleFee = getRescheduleFee(bookedRoom);
+                    String today = LocalDate.now().toString();
+
+                    bookedRoom = new BookedRoom(
+                            newBookingRequest.clientId(),
+                            bookingId,
+                            newBookingRequest.date(),
+                            today,
+                            rescheduleFee
+                    );
+
+                    return bookedRoom;
+
+                }
+        );
+
+        try {
+            bookedRooms.put(bookingId, bookedRoomFuture.get());
+        } catch (ExecutionException | InterruptedException e) {
+            throw new RoomNotAvailableException(e.getMessage());
+        }
+
+    }
+
+
+    public double getRescheduleFee(BookedRoom bookedRoom){
+
+        long numDays = getAmountOfDaysAfterRoomWasBooked(bookedRoom);
+
+        double rescheduleFeePercentage = getPercentageFee(numDays);
+
+        return Math.round( (rescheduleFeePercentage * bookedRoom.price()) * 100.0) / 100.0;
     }
 
     public List<BookedRoom> getBookedRooms() {
