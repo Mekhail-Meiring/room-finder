@@ -161,9 +161,10 @@ public class BookingService {
         }
     }
 
-    private double getRefundAmount(BookedRoom bookedRoom) {
-        long numDays = getNumDaysUntilBookedDate(bookedRoom);
-        double refundPercentage = getRefundPercentage(numDays);
+
+    public double getRefundAmount(BookedRoom bookedRoom) {
+        long numDays = getAmountOfDaysBeforeBookedDate(bookedRoom);
+        double refundPercentage = getPercentageFee(numDays);
         return Math.round( (refundPercentage * bookedRoom.price()) * 100.0) / 100.0;
     }
 
