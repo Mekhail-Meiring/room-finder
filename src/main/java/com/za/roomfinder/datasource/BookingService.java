@@ -14,7 +14,60 @@ public class BookingService {
 
     private final ConcurrentMap<Integer, BookedRoom> bookedRooms = new ConcurrentHashMap<>();
     private int bookingId = 1;
-    private ExecutorService executorService = Executors.newFixedThreadPool(1);
+    private int nrOfThreads = 1;
+    private ExecutorService executorService = Executors.newFixedThreadPool(nrOfThreads);
+    private final List<Client> clients = new ArrayList<>();
+
+
+    public void registerClient(Client client) {
+
+        if (!checkIfClientExists(client)){
+            clients.add(client);
+            nrOfThreads++;
+        }
+
+        else {
+            throw new ClientRegistrationException(
+                    "Client already with id number" + client.idNumber()+ " already exists");
+        }
+
+    }
+
+    public List<Client> getClients() {
+        return clients;
+    }
+
+    public Client clientLogin(Client client) {
+
+        if (checkIfClientExists(client)){
+            return findClientById(client.idNumber());
+        }
+
+        throw new ClientNotFoundException("Client does not exists");
+    }
+
+
+    public boolean checkIfClientExists(Client client) {
+
+        for (Client otherClient: clients) {
+            if (otherClient.idNumber() == client.idNumber()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public Client findClientById(int clientId) {
+
+        for (Client client: clients) {
+            if (client.idNumber() == clientId) {
+                return client;
+            }
+        }
+
+        throw new ClientNotFoundException("Client does not exist");
+    }
 
 
     public void bookRoom(BookingRequest bookingRequest) {
