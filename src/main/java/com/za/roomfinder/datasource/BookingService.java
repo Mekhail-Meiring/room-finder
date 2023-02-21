@@ -96,12 +96,14 @@ public class BookingService {
 
     private void checkDates (BookingRequest bookingRequest) throws RoomNotAvailableException{
 
-        if (LocalDate.parse(bookingRequest.startDate()).isBefore(LocalDate.now())) {
-            throw new RoomNotAvailableException("Start date cannot be in the past");
+    private void checkRequestDate(BookingRequest bookingRequest) throws RoomNotAvailableException{
+
+        if (LocalDate.parse(bookingRequest.date()).isBefore(LocalDate.now())) {
+            throw new RoomNotAvailableException("Date cannot be in the past");
         }
 
-        if (overlaps(bookingRequest)) {
-            throw new RoomNotAvailableException("Room is already booked");
+        if (checkIfBookingRequestDateIsTaken(bookingRequest)) {
+            throw new RoomNotAvailableException("There is already a booking for this date " + bookingRequest.date());
         }
     }
 
