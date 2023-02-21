@@ -77,22 +77,8 @@ public class BookingService {
 
 
     public void bookRoom(BookingRequest bookingRequest) {
-        executorService.submit(() -> {
-
-            checkDates(bookingRequest);
-
-            double price = calculatePrice(bookingRequest);
-            bookedRooms.put(bookingId, new BookedRoom(bookingRequest.clientId(), bookingId, bookingRequest.startDate(), bookingRequest.endDate(), price));
-            bookingId++;
-        });
-
-    }
-
-    @VisibleForTesting
-    public void bookRoom(BookingRequest bookingRequest, Runnable callback) {
-        executorService.submit(() -> {
-
-            checkDates(bookingRequest);
+        Future<BookedRoom> bookedRoomFuture =  executorService.submit(() -> {
+            checkRequestDate(bookingRequest);
 
             double price = calculatePrice(bookingRequest);
             bookedRooms.put(bookingId, new BookedRoom(bookingRequest.clientId(), bookingId, bookingRequest.startDate(), bookingRequest.endDate(), price));
