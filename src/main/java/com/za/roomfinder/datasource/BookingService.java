@@ -169,11 +169,19 @@ public class BookingService {
     }
 
 
-    public long getNumDaysUntilBookedDate(BookedRoom bookedRoom){
-        LocalDate startDate = LocalDate.parse(bookedRoom.startDate());
+    public long getAmountOfDaysBeforeBookedDate(BookedRoom bookedRoom){
+        LocalDate bookedForDate = LocalDate.parse(bookedRoom.date());
         LocalDate currentDate = LocalDate.now();
 
-        return ChronoUnit.DAYS.between(currentDate, startDate);
+        return ChronoUnit.DAYS.between(currentDate, bookedForDate);
+    }
+
+    public long getAmountOfDaysAfterRoomWasBooked (BookedRoom bookedRoom){
+
+        LocalDate bookedOnDate = LocalDate.parse(bookedRoom.bookedOnDate());
+        LocalDate currentDate = LocalDate.now();
+
+        return Math.abs(ChronoUnit.DAYS.between(currentDate, bookedOnDate));
     }
 
 
