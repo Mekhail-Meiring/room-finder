@@ -94,7 +94,6 @@ public class BookingService {
         }
     }
 
-    private void checkDates (BookingRequest bookingRequest) throws RoomNotAvailableException{
 
     private void checkRequestDate(BookingRequest bookingRequest) throws RoomNotAvailableException{
 
