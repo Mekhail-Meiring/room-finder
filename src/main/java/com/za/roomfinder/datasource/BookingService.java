@@ -81,10 +81,17 @@ public class BookingService {
             checkRequestDate(bookingRequest);
 
             double price = calculatePrice(bookingRequest);
-            bookedRooms.put(bookingId, new BookedRoom(bookingRequest.clientId(), bookingId, bookingRequest.startDate(), bookingRequest.endDate(), price));
-            bookingId++;
-            callback.run();
+            String today = LocalDate.now().toString();
+
+            return new BookedRoom(bookingRequest.clientId(), bookingId, bookingRequest.date(), today, price);
         });
+
+        try {
+            bookedRooms.put(bookingId, bookedRoomFuture.get());
+            bookingId++;
+        } catch (InterruptedException | ExecutionException e) {
+            throw new RoomNotAvailableException(e.getMessage());
+        }
     }
 
     private void checkDates (BookingRequest bookingRequest) throws RoomNotAvailableException{
