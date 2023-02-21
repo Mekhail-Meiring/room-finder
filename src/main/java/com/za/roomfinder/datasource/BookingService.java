@@ -133,11 +133,16 @@ public class BookingService {
     }
 
 
-    public double cancelBooking(int bookingId) throws ExecutionException, InterruptedException {
+    public double cancelBooking(int bookingId, int clientId) throws ExecutionException, InterruptedException {
 
         Future<Double> refundAmountFuture = executorService.submit(() -> {
-            checkIfBookingExists(bookingId);
+
+            if (clientNotOwner(clientId, bookingId)) {
+                throw new InvalidBookingException("Client does not own this booking");
+            }
+
             BookedRoom bookedRoom = bookedRooms.remove(bookingId);
+            checkIfBookingExists(bookedRoom);
             return getRefundAmount(bookedRoom);
         });
 
