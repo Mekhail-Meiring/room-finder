@@ -9,7 +9,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.concurrent.*;
 
-
+@Repository
 public class BookingService {
 
     private final ConcurrentMap<Integer, BookedRoom> bookedRooms = new ConcurrentHashMap<>();
