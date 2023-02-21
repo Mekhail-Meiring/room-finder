@@ -185,18 +185,18 @@ public class BookingService {
     }
 
 
-    public double getRefundPercentage(long numDays){
+    public double getPercentageFee(long numDays){
 
-        double refundPercentage = 0.0;
+        double percentageFee = 0.0;
         if (numDays >= 14) {
-            refundPercentage = 1.0;
+            percentageFee = 1.0;
         } else if (numDays >= 7) {
-            refundPercentage = 0.5;
+            percentageFee = 0.5;
         } else if (numDays >= 3) {
-            refundPercentage = 0.25;
+            percentageFee = 0.25;
         }
 
-        return refundPercentage;
+        return percentageFee;
     }
 
 
