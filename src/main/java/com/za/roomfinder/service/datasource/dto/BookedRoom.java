@@ -1,4 +1,4 @@
-package com.za.roomfinder.dto;
+package com.za.roomfinder.service.datasource.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

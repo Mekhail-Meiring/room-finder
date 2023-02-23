@@ -1,4 +1,4 @@
-package com.za.roomfinder.dto;
+package com.za.roomfinder.service.datasource.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -7,6 +7,6 @@ public record Client(
     @JsonProperty("name") String name,
     @JsonProperty("surname") String surname,
     @JsonProperty("email_address") String email,
-    @JsonProperty("phone_number") String phoneNumber
+    @JsonProperty("phone_number") int phoneNumber
 ) {
 }
