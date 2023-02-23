@@ -1,34 +1,33 @@
-package com.za.roomfinder.datasource;
+package com.za.roomfinder.service.datasource;
 
-import com.za.roomfinder.dto.BookedRoom;
-import com.za.roomfinder.dto.BookingRequest;
-import com.za.roomfinder.dto.Client;
-import com.za.roomfinder.exceptions.ClientNotFoundException;
-import com.za.roomfinder.exceptions.ClientRegistrationException;
-import com.za.roomfinder.exceptions.RoomNotAvailableException;
+import com.za.roomfinder.service.datasource.dto.BookedRoom;
+import com.za.roomfinder.service.datasource.dto.BookingRequest;
+import com.za.roomfinder.service.datasource.dto.Client;
+import com.za.roomfinder.exceptions.*;
+import com.za.roomfinder.service.datasource.dto.RoomPrice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDate;
-import java.util.concurrent.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class BookingServiceTest {
+public class RoomFinderDataSourceTest {
 
-    private BookingService bookingService;
+    private RoomFinderDataSource dataSource;
 
     @BeforeEach
     public void setUp() {
-        bookingService = new BookingService();
+        dataSource = new RoomFinderDataSource();
     }
 
     @Test
     @DisplayName("Should be able to book a room")
     public void testBookRoomSuccess() {
         BookingRequest bookingRequest = new BookingRequest(1, LocalDate.now().plusDays(5).toString());
-        bookingService.bookRoom(bookingRequest);
+        RoomPrice roomPrice = dataSource.bookRoom(bookingRequest);
+        dataSource.payForBooking(roomPrice.price(), bookingRequest);
 
-        assertEquals(1, bookingService.getBookedRooms().size());
+        assertEquals(1, dataSource.getBookedRooms().size());
     }
 
     @Test
@@ -41,14 +40,14 @@ public class BookingServiceTest {
                 "John",
                 "Doe",
                 "example@email.com",
-                "123456789");
+                123456789);
 
 
         // When:
-        bookingService.registerClient(client);
+        dataSource.registerClient(client);
 
         // Then:
-        assertEquals(1, bookingService.getClients().size());
+        assertEquals(1, dataSource.getClients().size());
     }
 
     @Test
@@ -61,10 +60,10 @@ public class BookingServiceTest {
                 "John",
                 "Doe",
                 "example@email.com",
-                "123456789");
+                123456789);
 
-        bookingService.registerClient(client);
-        assertEquals(1, bookingService.getClients().size());
+        dataSource.registerClient(client);
+        assertEquals(1, dataSource.getClients().size());
 
         // When:
         Client client1 = new Client(
@@ -72,11 +71,11 @@ public class BookingServiceTest {
                 "Johnny",
                 "Doe",
                 "example1@email.com",
-                "223456789");
+                223456789);
 
         // Then:
-        assertThrows(ClientRegistrationException.class, () -> bookingService.registerClient(client1));
-        assertEquals(1, bookingService.getClients().size());
+        assertThrows(ClientRegistrationException.class, () -> dataSource.registerClient(client1));
+        assertEquals(1, dataSource.getClients().size());
     }
 
     @Test
@@ -89,13 +88,13 @@ public class BookingServiceTest {
                 "John",
                 "Doe",
                 "example@email.com",
-                "123456789");
+                123456789);
 
-        bookingService.registerClient(client);
-        assertEquals(1, bookingService.getClients().size());
+        dataSource.registerClient(client);
+        assertEquals(1, dataSource.getClients().size());
 
         // When:
-        Client loggedInClient = bookingService.clientLogin(client);
+        Client loggedInClient = dataSource.clientLogin(client.idNumber());
 
         // Then:
         assertEquals(client, loggedInClient);
@@ -108,17 +107,10 @@ public class BookingServiceTest {
     public void clientShouldNotBeAbleToLoginIfNotRegistered (){
 
         // Given:
-        assertEquals(0, bookingService.getClients().size());
+        assertEquals(0, dataSource.getClients().size());
 
         // When/Then:
-        Client client = new Client(
-                1234,
-                "John",
-                "Doe",
-                "example@email.com",
-                "123456789");
-
-        assertThrows(ClientNotFoundException.class, () -> bookingService.clientLogin(client));
+        assertThrows(ClientNotFoundException.class, () -> dataSource.clientLogin(1234));
 
     }
 
@@ -129,12 +121,13 @@ public class BookingServiceTest {
 
         // Given
         BookingRequest bookingRequest1 = new BookingRequest(1, LocalDate.now().toString());
-        bookingService.bookRoom(bookingRequest1);
+        RoomPrice roomPrice = dataSource.bookRoom(bookingRequest1);
+        dataSource.payForBooking(roomPrice.price(), bookingRequest1);
 
         // When/Then
         BookingRequest bookingRequest2 = new BookingRequest(1, LocalDate.now().toString());
-        assertThrows(RoomNotAvailableException.class, () -> bookingService.bookRoom(bookingRequest2));
-        assertEquals(1, bookingService.getBookedRooms().size());
+        assertThrows(RoomNotAvailableException.class, () -> dataSource.bookRoom(bookingRequest2));
+        assertEquals(1, dataSource.getBookedRooms().size());
     }
 
 
@@ -146,8 +139,8 @@ public class BookingServiceTest {
         BookingRequest bookingRequest = new BookingRequest(1, LocalDate.now().minusDays(1).toString());
 
         // When/Then
-        assertThrows(RoomNotAvailableException.class, () -> bookingService.bookRoom(bookingRequest));
-        assertEquals(0, bookingService.getBookedRooms().size());
+        assertThrows(RoomNotAvailableException.class, () -> dataSource.bookRoom(bookingRequest));
+        assertEquals(0, dataSource.getBookedRooms().size());
     }
 
 
@@ -160,7 +153,7 @@ public class BookingServiceTest {
 
         // When
         BookingRequest bookingRequest = new BookingRequest(1, fortyFirstDayOfTheYear);
-        Double price = bookingService.calculatePrice(bookingRequest);
+        Double price = dataSource.calculatePrice(bookingRequest);
 
 
         // Then
@@ -177,39 +170,40 @@ public class BookingServiceTest {
     public void shouldBeAbleGetNumberOfDaysUntilADayIsBooked(){
         LocalDate mockDate = LocalDate.now();
         BookedRoom bookedRoom = new BookedRoom(1, 1, mockDate.plusDays(2).toString(), mockDate.toString(), 0);
-        long daysUntilBooked = bookingService.getAmountOfDaysBeforeBookedDate(bookedRoom);
+        long daysUntilBooked = dataSource.getAmountOfDaysBeforeBookedDate(bookedRoom);
         assertEquals(2, daysUntilBooked);
     }
 
     @Test
     @DisplayName("Should be able to get the percentage of the price that should be refunded")
     public void shouldBeAbleToGetPercentageDiscountForAmountOfDays(){
-        assertEquals(0, bookingService.getPercentageFee(1));
-        assertEquals(0.25, bookingService.getPercentageFee(4));
-        assertEquals(0.5, bookingService.getPercentageFee(8));
-        assertEquals(1.0, bookingService.getPercentageFee(15));
+        assertEquals(0, dataSource.getPercentageFee(1));
+        assertEquals(0.25, dataSource.getPercentageFee(4));
+        assertEquals(0.5, dataSource.getPercentageFee(8));
+        assertEquals(1.0, dataSource.getPercentageFee(15));
     }
 
 
     @Test
     @DisplayName("Should be able to cancel a booking two days before and get no refund")
-    public void shouldBeAbleCancelBookingTwoDaysBeforeAndGetNoRefund() throws ExecutionException, InterruptedException {
+    public void shouldBeAbleCancelBookingTwoDaysBeforeAndGetNoRefund() {
 
         // Booked for two days after today
         String bookedForDate = LocalDate.now().plusDays(2).toString();
 
         BookingRequest bookingRequest = new BookingRequest(1, bookedForDate);
-        bookingService.bookRoom(bookingRequest);
+        RoomPrice priceOfRoom = dataSource.bookRoom(bookingRequest);
+        dataSource.payForBooking(priceOfRoom.price(), bookingRequest);
 
-        assertEquals(1, bookingService.getBookedRooms().size());
+        assertEquals(1, dataSource.getBookedRooms().size());
 
-        double price = bookingService.getBookedRooms().get(0).price();
-        assertEquals(price, 12.83);
+        double price = dataSource.getBookedRooms().get(0).price();
+        assertTrue(price > 0);
 
-        double refundAmount = bookingService.cancelBooking(1, 1);
+        double refundAmount = dataSource.cancelBooking(1, 1);
 
 
-        assertEquals(0, bookingService.getBookedRooms().size());
+        assertEquals(0, dataSource.getBookedRooms().size());
 
         // 0% of the price refunded = 0.0
         assertEquals(0.0, refundAmount);
@@ -219,77 +213,82 @@ public class BookingServiceTest {
 
     @Test
     @DisplayName("Should be able to cancel a booking four days before and get a 25% refund")
-    public void shouldBeAbleCancelBookingFourDaysBeforeAndGet25percentRefund() throws ExecutionException, InterruptedException {
+    public void shouldBeAbleCancelBookingFourDaysBeforeAndGet25percentRefund(){
 
         // Booked for four days after today
         String bookedForDate = LocalDate.now().plusDays(4).toString();
 
         BookingRequest bookingRequest = new BookingRequest(1, bookedForDate);
-        bookingService.bookRoom(bookingRequest);
+        RoomPrice priceOfRoom = dataSource.bookRoom(bookingRequest);
+        dataSource.payForBooking(priceOfRoom.price(), bookingRequest);
 
-        assertEquals(1, bookingService.getBookedRooms().size());
+        assertEquals(1, dataSource.getBookedRooms().size());
 
-        double price = bookingService.getBookedRooms().get(0).price();
-        assertEquals(13.0, price);
+        double price = dataSource.getBookedRooms().get(0).price();
 
-        double refundAmount = bookingService.cancelBooking(1, 1);
+        assertTrue(price > 0);
 
+        double refundAmount = dataSource.cancelBooking(1, 1);
 
-        assertEquals(0, bookingService.getBookedRooms().size());
+        assertEquals(0, dataSource.getBookedRooms().size());
 
-        // 25% of the price refunded = 3.23
-        assertEquals(3.25, refundAmount);
+        // 25% of the price refunded
+        double expectedRefundAmount = Math.round( (0.25 * price) * 100.0) / 100.0;
+        assertEquals(expectedRefundAmount, refundAmount);
     }
 
 
     @Test
-    @DisplayName("Should be able to cancel a booking four days before and get a 50% refund")
-    public void shouldBeAbleCancelBookingEightDaysBeforeAndGet50percentRefund() throws ExecutionException, InterruptedException {
+    @DisplayName("Should be able to cancel a booking Eight days before and get a 50% refund")
+    public void shouldBeAbleCancelBookingEightDaysBeforeAndGet50percentRefund(){
 
         // Booked for eight days after today
         String bookedForDate = LocalDate.now().plusDays(8).toString();
 
         BookingRequest bookingRequest = new BookingRequest(1, bookedForDate);
 
-        bookingService.bookRoom(bookingRequest);
+        RoomPrice priceOfRoom = dataSource.bookRoom(bookingRequest);
+        dataSource.payForBooking(priceOfRoom.price(), bookingRequest);
 
+        assertEquals(1, dataSource.getBookedRooms().size());
 
-        assertEquals(1, bookingService.getBookedRooms().size());
+        double price = dataSource.getBookedRooms().get(0).price();
 
-        double price = bookingService.getBookedRooms().get(0).price();
-        assertEquals(13.33, price);
+        assertTrue(price > 0);
 
-        double refundAmount = bookingService.cancelBooking(1, 1);
+        double refundAmount = dataSource.cancelBooking(1, 1);
 
+        assertEquals(0, dataSource.getBookedRooms().size());
 
-        assertEquals(0, bookingService.getBookedRooms().size());
-
-        // 50% of the price refunded = 6.63
-        assertEquals(6.67, refundAmount);
+        // 50% of the price refunded
+        double expectedRefundAmount = Math.round( (0.5 * price) * 100.0) / 100.0;
+        assertEquals(expectedRefundAmount, refundAmount);
     }
 
 
     @Test
-    public void testCancelBookingFifteenDaysBefore() throws ExecutionException, InterruptedException {
+    @DisplayName("Should be able to cancel a booking Fifteen days before and get a 100% refund")
+    public void testCancelBookingFifteenDaysBefore() {
 
         // Booked for fifteen days after today
         String bookedForDate = LocalDate.now().plusDays(15).toString();
 
         BookingRequest bookingRequest = new BookingRequest(1, bookedForDate);
-        bookingService.bookRoom(bookingRequest);
+        RoomPrice priceOfRoom = dataSource.bookRoom(bookingRequest);
+        dataSource.payForBooking(priceOfRoom.price(), bookingRequest);
 
-        assertEquals(1, bookingService.getBookedRooms().size());
+        assertEquals(1, dataSource.getBookedRooms().size());
 
-        double price = bookingService.getBookedRooms().get(0).price();
-        assertEquals(13.92,price);
+        double price = dataSource.getBookedRooms().get(0).price();
 
-        double refundAmount = bookingService.cancelBooking(1, 1);
+        assertTrue(price > 0);
 
+        double refundAmount = dataSource.cancelBooking(1, 1);
 
-        assertEquals(0, bookingService.getBookedRooms().size());
+        assertEquals(0, dataSource.getBookedRooms().size());
 
-        // 100% of the price refunded = 13.83
-        assertEquals(13.92, refundAmount);
+        // 100% of the price refunded
+        assertEquals(price, refundAmount);
     }
 
 
@@ -310,7 +309,7 @@ public class BookingServiceTest {
 
         // When:
 
-        double rescheduleFee =  bookingService.getRescheduleFee(bookedRoom);
+        double rescheduleFee =  dataSource.getRescheduleFee(bookedRoom);
 
         // Then:
 
@@ -336,7 +335,7 @@ public class BookingServiceTest {
                 bookedRoomPrice);
 
         // When:
-        double rescheduleFee =  bookingService.getRescheduleFee(bookedRoom);
+        double rescheduleFee =  dataSource.getRescheduleFee(bookedRoom);
 
         // Then:
 
@@ -362,7 +361,7 @@ public class BookingServiceTest {
 
         // When:
 
-        double rescheduleFee =  bookingService.getRescheduleFee(bookedRoom);
+        double rescheduleFee =  dataSource.getRescheduleFee(bookedRoom);
 
         // Then:
 
@@ -388,7 +387,7 @@ public class BookingServiceTest {
                 bookedRoomPrice);
 
         // When:
-        double rescheduleFee =  bookingService.getRescheduleFee(bookedRoom);
+        double rescheduleFee =  dataSource.getRescheduleFee(bookedRoom);
 
         // Then:
 
@@ -404,27 +403,59 @@ public class BookingServiceTest {
         // Given:
         String bookedForDate = LocalDate.now().plusDays(5).toString();
         BookingRequest bookingRequest = new BookingRequest(1, bookedForDate);
-        bookingService.bookRoom(bookingRequest);
+        RoomPrice roomPrice = dataSource.bookRoom(bookingRequest);
+        dataSource.payForBooking(roomPrice.price(), bookingRequest);
 
-        assertEquals(1, bookingService.getBookedRooms().size());
-        assertEquals(bookedForDate, bookingService.getBookedRooms().get(0).date());
-        assertEquals(1, bookingService.getBookedRooms().get(0).bookingId());
-        assertTrue(bookingService.getBookedRooms().get(0).price() > 0.0);
+        assertEquals(1, dataSource.getBookedRooms().size());
+        assertEquals(bookedForDate, dataSource.getBookedRooms().get(0).date());
+        assertEquals(1, dataSource.getBookedRooms().get(0).bookingId());
+        assertTrue(dataSource.getBookedRooms().get(0).price() > 0.0);
 
         // When:
         String rescheduleDate = LocalDate.now().plusDays(6).toString();
         BookingRequest rescheduleBookingRequest = new BookingRequest(1, rescheduleDate);
 
-        bookingService.rescheduleBooking(1, rescheduleBookingRequest);
-        assertEquals(rescheduleDate, bookingService.getBookedRooms().get(0).date());
+        RoomPrice reschedulePrice = dataSource.rescheduleBooking(1, rescheduleBookingRequest);
+        dataSource.payForReschedule(1, reschedulePrice.price(), rescheduleBookingRequest);
+        assertEquals(rescheduleDate, dataSource.getBookedRooms().get(0).date());
 
 
         // Then:
 
         // no fee for same day reschedule
-        assertEquals(0.0, bookingService.getBookedRooms().get(0).price());
+        assertEquals(0.0, dataSource.getBookedRooms().get(0).price());
     }
 
+    @Test
+    @DisplayName("hasBookedFiveRoomsInWeek should return false if client has no booked rooms in a week")
+    public void shouldBeAbleToCheckIfClientHasBooked5RoomsInAWeek1(){
 
+        // When:
+        boolean hasBooked5RoomsInAWeek = dataSource.hasBookedFiveRoomsInWeek(1);
 
+        // Then:
+        assertFalse(hasBooked5RoomsInAWeek);
+
+    }
+
+    @Test
+    @DisplayName("Should throw RoomNotAvailableException if client has already booked 5 rooms in a week")
+    public void shouldThrowRoomNotAvailableException(){
+
+        // When/Then:
+
+        RoomNotAvailableException exception = assertThrows(RoomNotAvailableException.class,  () -> {
+            for (int i = 1; i <= 20; i++) {
+                String bookedForDate = LocalDate.now().plusDays(i).toString();
+                BookingRequest bookingRequest = new BookingRequest(1, bookedForDate);
+                RoomPrice roomPrice = dataSource.bookRoom(bookingRequest);
+                dataSource.payForBooking(roomPrice.price(), bookingRequest);
+            }
+        });
+
+        assertEquals(
+                "com.za.roomfinder.exceptions.RoomNotAvailableException: Client has already booked 5 rooms in a week",
+                exception.getMessage());
+
+    }
 }
