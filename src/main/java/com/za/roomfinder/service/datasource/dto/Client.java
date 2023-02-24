@@ -7,6 +7,6 @@ public record Client(
     @JsonProperty("name") String name,
     @JsonProperty("surname") String surname,
     @JsonProperty("email_address") String email,
-    @JsonProperty("phone_number") int phoneNumber
+    @JsonProperty("phone_number") String phoneNumber
 ) {
 }

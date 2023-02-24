@@ -3,6 +3,7 @@ package com.za.roomfinder.service;
 import com.za.roomfinder.service.datasource.RoomFinderDataSource;
 
 import com.za.roomfinder.service.datasource.dto.BookingRequest;
+import com.za.roomfinder.service.datasource.dto.RoomPaymentRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -90,13 +91,13 @@ class RoomFinderServiceTest {
     public void test7(){
 
         // Given
-        BookingRequest bookingRequest = new BookingRequest(1, "2023-02-23");
+        RoomPaymentRequest roomPaymentRequest = new RoomPaymentRequest(1, "2021-01-01", 0.0);
 
         // When:
-        service.payForBooking(0.0, bookingRequest);
+        service.payForBooking(roomPaymentRequest);
 
         // Then:
-        Mockito.verify(dataSource, Mockito.times(1)).payForBooking(0.0, bookingRequest);
+        Mockito.verify(dataSource, Mockito.times(1)).payForBooking(roomPaymentRequest);
 
     }
 }

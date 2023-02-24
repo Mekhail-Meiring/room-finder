@@ -1,14 +1,19 @@
 package com.za.roomfinder.controller;
 
-import com.za.roomfinder.service.datasource.dto.BookingRequest;
-import com.za.roomfinder.service.datasource.dto.Client;
+import com.za.roomfinder.service.datasource.S3Bucket;
+import com.za.roomfinder.service.datasource.dto.*;
 import com.za.roomfinder.exceptions.*;
-import com.za.roomfinder.service.datasource.dto.RoomPrice;
+import jakarta.websocket.server.PathParam;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.web.bind.annotation.*;
 import com.za.roomfinder.service.RoomFinderService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+
+import java.net.URL;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -25,26 +30,23 @@ public class ApiController {
 
 
     @ExceptionHandler(value = {
+            ClientRegistrationException.class,
+            InvalidBookingException.class,
             ClientNotFoundException.class,
             RoomNotAvailableException.class
-    })
-    public ResponseEntity<String> handleException(RuntimeException e) {
-        String errorMsg = e.getMessage();
-        return new ResponseEntity<>(errorMsg, HttpStatus.NOT_FOUND);
-    }
-
-
-    @ExceptionHandler(value = {
-            ClientRegistrationException.class,
-            InvalidBookingException.class
     })
     public ResponseEntity<String> handleException2(RuntimeException e) {
         String errorMsg = e.getMessage();
         return new ResponseEntity<>(errorMsg, HttpStatus.BAD_REQUEST);
     }
 
+    @MessageMapping("/get-bookings")
+    @SendTo("/topic/bookings")
+    public List<BookedRoom> getBookedRooms() {
+        return roomFinderService.getBookedRooms();
+    }
 
-    @PostMapping("register")
+    @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
     public void registerClient(@RequestBody Client client) {
         roomFinderService.registerClient(client);
@@ -66,8 +68,8 @@ public class ApiController {
 
     @PostMapping("/booking-payment")
     @ResponseStatus(HttpStatus.CREATED)
-    public void confirmBooking(@RequestParam("room_price") Double price, @RequestBody BookingRequest bookingRequest){
-        roomFinderService.payForBooking(price, bookingRequest);
+    public void confirmBooking(@RequestBody RoomPaymentRequest roomPaymentRequest){
+        roomFinderService.payForBooking(roomPaymentRequest);
         simpMessagingTemplate.convertAndSend("/topic/bookings", roomFinderService.getBookedRooms());
     }
 
@@ -97,5 +99,24 @@ public class ApiController {
         simpMessagingTemplate.convertAndSend("topic/bookings", roomFinderService.getBookedRooms());
         return  refundAmount;
     }
+
+    @GetMapping("/s3-url")
+    @ResponseStatus(HttpStatus.OK)
+    public URL getS3Url(){
+        return S3Bucket.getSignedUrl();
+    }
+
+    @PostMapping("/upload-profile-pic")
+    @ResponseStatus(HttpStatus.OK)
+    public void uploadProfilePic(@RequestBody ClientPP clientPP){
+        roomFinderService.uploadProfilePic(clientPP);
+    }
+
+    @GetMapping("/get-profile-pic/{client_id}")
+    @ResponseStatus(HttpStatus.OK)
+    public ClientPP getProfilePic(@PathVariable("client_id") int clientId){
+        return roomFinderService.getProfilePic(clientId);
+    }
+
 
 }

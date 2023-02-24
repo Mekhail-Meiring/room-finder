@@ -1,0 +1,14 @@
+.booked-rooms{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
+  box-shadow: 0 0 12px 2px rgba(15, 15, 15, 0.2);
+  border-radius: 4px;
+  position: relative;
+  z-index: 99;
+  width: 30%;
+  height: 15em;
+  padding: 17px 10px;
+}

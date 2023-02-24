@@ -3,6 +3,7 @@ package com.za.roomfinder.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.za.roomfinder.service.datasource.dto.BookingRequest;
 import com.za.roomfinder.service.datasource.dto.Client;
+import com.za.roomfinder.service.datasource.dto.RoomPaymentRequest;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -13,9 +14,11 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.time.LocalDate;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -43,7 +46,7 @@ class ApiControllerTest {
                 "John",
                 "Doe",
                 "example@email.com",
-                123456789
+                "123456789"
         );
 
 
@@ -111,10 +114,11 @@ class ApiControllerTest {
         BookingRequest bookingRequest = new BookingRequest(1234, LocalDate.now().plusDays(1).toString());
 
         // When:
+        RoomPaymentRequest roomPaymentRequest = new RoomPaymentRequest(bookingRequest.clientId(), bookingRequest.date(), 1.0);
+
         ResultActions performPost = mockMvc.perform(post(baseUrl + "/booking-payment")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(bookingRequest))
-                .param("room_price", "1.0")
+                .content(objectMapper.writeValueAsString(roomPaymentRequest))
         );
 
         // Then:
@@ -182,6 +186,15 @@ class ApiControllerTest {
         // Then:
         performPost.andExpect(status().isOk())
                 .andDo(print());
+    }
+
+    @Test
+    @DisplayName("GET /api/s3-url")
+    public void test8() throws Exception {
+
+        // When/Then:
+        mockMvc.perform(get(baseUrl + "/s3-url"))
+                .andExpect(status().isOk());
     }
 
 }

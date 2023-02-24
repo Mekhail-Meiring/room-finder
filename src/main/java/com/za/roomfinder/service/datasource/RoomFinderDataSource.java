@@ -1,11 +1,7 @@
 package com.za.roomfinder.service.datasource;
 
-
-import com.za.roomfinder.service.datasource.dto.BookedRoom;
-import com.za.roomfinder.service.datasource.dto.BookingRequest;
-import com.za.roomfinder.service.datasource.dto.Client;
+import com.za.roomfinder.service.datasource.dto.*;
 import com.za.roomfinder.exceptions.*;
-import com.za.roomfinder.service.datasource.dto.RoomPrice;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
@@ -18,15 +14,16 @@ import java.util.concurrent.*;
 public class RoomFinderDataSource {
 
     private final ConcurrentMap<Integer, BookedRoom> bookedRooms = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Integer, ClientPP> clientPPs = new ConcurrentHashMap<>();
     private int bookingId = 1;
     private final ExecutorService executorService = Executors.newFixedThreadPool(10);
-    private final List<Client> clients = new ArrayList<>();
+    private final ConcurrentMap<Integer, Client> clients = new ConcurrentHashMap<>();
 
 
     public synchronized void registerClient(Client client) {
 
-        if (!checkIfClientExists(client)){
-            clients.add(client);
+        if (!clients.containsKey(client.idNumber())){
+            clients.put(client.idNumber(), client);
         }
 
         else {
@@ -36,13 +33,13 @@ public class RoomFinderDataSource {
     }
 
     public synchronized List<Client> getClients() {
-        return clients;
+        return clients.values().stream().toList();
     }
 
 
     public synchronized Client clientLogin(int clientId) {
 
-        Client client = findClientById(clientId);
+        Client client = clients.get(clientId);
 
         if (client == null){
             throw new ClientNotFoundException("Client does not exists");
@@ -50,17 +47,6 @@ public class RoomFinderDataSource {
 
         return client;
 
-    }
-
-
-    public boolean checkIfClientExists(Client client) {
-
-        for (Client otherClient: clients) {
-            if (otherClient.idNumber() == client.idNumber()) {
-                return true;
-            }
-        }
-        return false;
     }
 
 
@@ -101,19 +87,6 @@ public class RoomFinderDataSource {
         return bookings;
     }
 
-
-    public Client findClientById(int clientId) {
-
-        for (Client client: clients) {
-            if (client.idNumber() == clientId) {
-                return client;
-            }
-        }
-
-        throw new ClientNotFoundException("Client does not exist");
-    }
-
-
     public RoomPrice bookRoom(BookingRequest bookingRequest) {
         try {
             return new RoomPrice(bookedRoomPriceFuture(bookingRequest).get());
@@ -122,16 +95,16 @@ public class RoomFinderDataSource {
         }
     }
 
-    public void payForBooking(Double price, BookingRequest bookingRequest){
+    public void payForBooking(RoomPaymentRequest roomPaymentRequest) {
 
         String today = LocalDate.now().toString();
 
         BookedRoom bookedRoom = new BookedRoom(
-                bookingRequest.clientId(),
+                roomPaymentRequest.clientId(),
                 bookingId,
-                bookingRequest.date(),
+                roomPaymentRequest.date(),
                 today,
-                price
+                roomPaymentRequest.price()
         );
 
         bookedRooms.put(bookingId, bookedRoom);
@@ -315,5 +288,17 @@ public class RoomFinderDataSource {
 
     public List<BookedRoom> getBookedRooms() {
         return new ArrayList<>(bookedRooms.values());
+    }
+
+    public void uploadProfilePic(ClientPP clientPP) {
+        clientPPs.put(clientPP.clientId(), clientPP);
+    }
+
+    public ClientPP getProfilePic(int clientId) {
+        return clientPPs.get(clientId);
+    }
+
+    public List<ClientPP> getClientsPP(int clientId) {
+        return clientPPs.values().stream().toList();
     }
 }

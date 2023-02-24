@@ -1,10 +1,7 @@
 package com.za.roomfinder.service.datasource;
 
-import com.za.roomfinder.service.datasource.dto.BookedRoom;
-import com.za.roomfinder.service.datasource.dto.BookingRequest;
-import com.za.roomfinder.service.datasource.dto.Client;
+import com.za.roomfinder.service.datasource.dto.*;
 import com.za.roomfinder.exceptions.*;
-import com.za.roomfinder.service.datasource.dto.RoomPrice;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -25,7 +22,8 @@ public class RoomFinderDataSourceTest {
     public void testBookRoomSuccess() {
         BookingRequest bookingRequest = new BookingRequest(1, LocalDate.now().plusDays(5).toString());
         RoomPrice roomPrice = dataSource.bookRoom(bookingRequest);
-        dataSource.payForBooking(roomPrice.price(), bookingRequest);
+        RoomPaymentRequest roomPaymentRequest = new RoomPaymentRequest(1, bookingRequest.date(), roomPrice.price());
+        dataSource.payForBooking(roomPaymentRequest);
 
         assertEquals(1, dataSource.getBookedRooms().size());
     }
@@ -40,7 +38,7 @@ public class RoomFinderDataSourceTest {
                 "John",
                 "Doe",
                 "example@email.com",
-                123456789);
+                "123456789");
 
 
         // When:
@@ -60,7 +58,7 @@ public class RoomFinderDataSourceTest {
                 "John",
                 "Doe",
                 "example@email.com",
-                123456789);
+                "123456789");
 
         dataSource.registerClient(client);
         assertEquals(1, dataSource.getClients().size());
@@ -71,7 +69,7 @@ public class RoomFinderDataSourceTest {
                 "Johnny",
                 "Doe",
                 "example1@email.com",
-                223456789);
+                "223456789");
 
         // Then:
         assertThrows(ClientRegistrationException.class, () -> dataSource.registerClient(client1));
@@ -88,7 +86,7 @@ public class RoomFinderDataSourceTest {
                 "John",
                 "Doe",
                 "example@email.com",
-                123456789);
+                "123456789");
 
         dataSource.registerClient(client);
         assertEquals(1, dataSource.getClients().size());
@@ -122,7 +120,8 @@ public class RoomFinderDataSourceTest {
         // Given
         BookingRequest bookingRequest1 = new BookingRequest(1, LocalDate.now().toString());
         RoomPrice roomPrice = dataSource.bookRoom(bookingRequest1);
-        dataSource.payForBooking(roomPrice.price(), bookingRequest1);
+        RoomPaymentRequest roomPaymentRequest = new RoomPaymentRequest(1, bookingRequest1.date(), roomPrice.price());
+        dataSource.payForBooking(roomPaymentRequest);
 
         // When/Then
         BookingRequest bookingRequest2 = new BookingRequest(1, LocalDate.now().toString());
@@ -193,7 +192,8 @@ public class RoomFinderDataSourceTest {
 
         BookingRequest bookingRequest = new BookingRequest(1, bookedForDate);
         RoomPrice priceOfRoom = dataSource.bookRoom(bookingRequest);
-        dataSource.payForBooking(priceOfRoom.price(), bookingRequest);
+        RoomPaymentRequest roomPaymentRequest = new RoomPaymentRequest(1, bookingRequest.date(), priceOfRoom.price());
+        dataSource.payForBooking(roomPaymentRequest);
 
         assertEquals(1, dataSource.getBookedRooms().size());
 
@@ -220,7 +220,8 @@ public class RoomFinderDataSourceTest {
 
         BookingRequest bookingRequest = new BookingRequest(1, bookedForDate);
         RoomPrice priceOfRoom = dataSource.bookRoom(bookingRequest);
-        dataSource.payForBooking(priceOfRoom.price(), bookingRequest);
+        RoomPaymentRequest roomPaymentRequest = new RoomPaymentRequest(1, bookingRequest.date(), priceOfRoom.price());
+        dataSource.payForBooking(roomPaymentRequest);
 
         assertEquals(1, dataSource.getBookedRooms().size());
 
@@ -248,7 +249,8 @@ public class RoomFinderDataSourceTest {
         BookingRequest bookingRequest = new BookingRequest(1, bookedForDate);
 
         RoomPrice priceOfRoom = dataSource.bookRoom(bookingRequest);
-        dataSource.payForBooking(priceOfRoom.price(), bookingRequest);
+        RoomPaymentRequest roomPaymentRequest = new RoomPaymentRequest(1, bookingRequest.date(), priceOfRoom.price());
+        dataSource.payForBooking(roomPaymentRequest);
 
         assertEquals(1, dataSource.getBookedRooms().size());
 
@@ -275,7 +277,8 @@ public class RoomFinderDataSourceTest {
 
         BookingRequest bookingRequest = new BookingRequest(1, bookedForDate);
         RoomPrice priceOfRoom = dataSource.bookRoom(bookingRequest);
-        dataSource.payForBooking(priceOfRoom.price(), bookingRequest);
+        RoomPaymentRequest roomPaymentRequest = new RoomPaymentRequest(1, bookingRequest.date(), priceOfRoom.price());
+        dataSource.payForBooking(roomPaymentRequest);
 
         assertEquals(1, dataSource.getBookedRooms().size());
 
@@ -404,7 +407,8 @@ public class RoomFinderDataSourceTest {
         String bookedForDate = LocalDate.now().plusDays(5).toString();
         BookingRequest bookingRequest = new BookingRequest(1, bookedForDate);
         RoomPrice roomPrice = dataSource.bookRoom(bookingRequest);
-        dataSource.payForBooking(roomPrice.price(), bookingRequest);
+        RoomPaymentRequest roomPaymentRequest = new RoomPaymentRequest(1, bookingRequest.date(), roomPrice.price());
+        dataSource.payForBooking(roomPaymentRequest);
 
         assertEquals(1, dataSource.getBookedRooms().size());
         assertEquals(bookedForDate, dataSource.getBookedRooms().get(0).date());
@@ -449,7 +453,8 @@ public class RoomFinderDataSourceTest {
                 String bookedForDate = LocalDate.now().plusDays(i).toString();
                 BookingRequest bookingRequest = new BookingRequest(1, bookedForDate);
                 RoomPrice roomPrice = dataSource.bookRoom(bookingRequest);
-                dataSource.payForBooking(roomPrice.price(), bookingRequest);
+                RoomPaymentRequest roomPaymentRequest = new RoomPaymentRequest(1, bookingRequest.date(), roomPrice.price());
+                dataSource.payForBooking(roomPaymentRequest);
             }
         });
 

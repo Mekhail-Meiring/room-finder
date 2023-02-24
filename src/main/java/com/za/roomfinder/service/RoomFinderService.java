@@ -1,12 +1,8 @@
 package com.za.roomfinder.service;
 
 import com.za.roomfinder.service.datasource.RoomFinderDataSource;
-import com.za.roomfinder.service.datasource.dto.BookedRoom;
-import com.za.roomfinder.service.datasource.dto.BookingRequest;
-import com.za.roomfinder.service.datasource.dto.Client;
-import com.za.roomfinder.service.datasource.dto.RoomPrice;
+import com.za.roomfinder.service.datasource.dto.*;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 
 @Service
@@ -33,8 +29,8 @@ public class RoomFinderService {
         return dataSource.bookRoom(bookingRequest);
     }
 
-    public void payForBooking(Double price, BookingRequest bookingRequest){
-        dataSource.payForBooking(price, bookingRequest);
+    public void payForBooking(RoomPaymentRequest roomPaymentRequest){
+        dataSource.payForBooking(roomPaymentRequest);
     }
 
 
@@ -56,4 +52,21 @@ public class RoomFinderService {
         return dataSource.getBookedRooms();
     }
 
+
+    public void uploadProfilePic(ClientPP clientPP) {
+        dataSource.uploadProfilePic(clientPP);
+    }
+
+
+    public ClientPP getProfilePic(int clientId) {
+        return dataSource.getProfilePic(clientId);
+    }
+
+    public List<Client> getClients() {
+        return dataSource.getClients();
+    }
+
+    public List<ClientPP> getListOfClientPP(int clientId) {
+        return dataSource.getClientsPP(clientId);
+    }
 }
